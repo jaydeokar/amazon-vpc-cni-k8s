@@ -23,7 +23,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudwatch"
 	dto "github.com/prometheus/client_model/go"
 	"github.com/prometheus/common/expfmt"
-	"github.com/prometheus/common/log"
+	"github.com/prometheus/common/promlog"
 	"k8s.io/client-go/kubernetes"
 
 	"github.com/aws/amazon-vpc-cni-k8s/pkg/publisher"

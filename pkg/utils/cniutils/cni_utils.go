@@ -1,6 +1,6 @@
 package cniutils
 
-import "github.com/containernetworking/cni/pkg/types/current"
+import "github.com/containernetworking/cni/pkg/types"
 
 func FindInterfaceByName(ifaceList []*current.Interface, ifaceName string) (ifaceIndex int, iface *current.Interface, found bool) {
 	for ifaceIndex, iface := range ifaceList {
