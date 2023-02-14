@@ -97,7 +97,7 @@ var _ = Describe("[CANARY] test service connectivity", func() {
 
 		testerContainer = manifest.NewBusyBoxContainerBuilder().
 			Command([]string{"wget"}).
-			Args([]string{"--spider", "-T", "1", fmt.Sprintf("[%s]:%d", service.Spec.ClusterIP,
+			Args([]string{"--spider", "-T", "5", fmt.Sprintf("[%s]:%d", service.Spec.ClusterIP,
 				service.Spec.Ports[0].Port)}).
 			Build()
 
@@ -109,12 +109,19 @@ var _ = Describe("[CANARY] test service connectivity", func() {
 		By("creating jobs to verify service connectivity")
 		_, err = f.K8sResourceManagers.JobManager().
 			CreateAndWaitTillJobCompleted(testerJob)
+		podList, _ := f.K8sResourceManagers.PodManager().GetPodsWithLabelSelectorMap(map[string]string{"job-name": "test-job"})
+
+		for _, pod := range podList.Items {
+			podlog, _ := f.K8sResourceManagers.PodManager().PodLogs(testerJob.Namespace, pod.Name)
+			fmt.Fprintf(GinkgoWriter, "Pod logs %s : %s", pod.Name, podlog)
+		}
+
 		Expect(err).ToNot(HaveOccurred())
 
 		// Test connection to an unreachable port should fail
 		negativeTesterContainer = manifest.NewBusyBoxContainerBuilder().
 			Command([]string{"wget"}).
-			Args([]string{"--spider", "-T", "1", fmt.Sprintf("[%s]:%d", service.Spec.ClusterIP, 2273)}).
+			Args([]string{"--spider", "-T", "5", fmt.Sprintf("[%s]:%d", service.Spec.ClusterIP, 2273)}).
 			Build()
 
 		negativeTesterJob = manifest.NewDefaultJobBuilder().

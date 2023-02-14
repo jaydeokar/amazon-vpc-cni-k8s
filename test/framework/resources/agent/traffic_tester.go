@@ -114,6 +114,13 @@ func (t *TrafficTest) TestTraffic() (float64, error) {
 		return 0, fmt.Errorf("failed to start client jobs: %v", err)
 	}
 
+	clientPodList, _ := t.Framework.K8sResourceManagers.PodManager().GetPodsWithLabelSelectorMap(map[string]string{"job-name": "traffic-client-regular-pods"})
+
+	for _, pod := range clientPodList.Items {
+		podlog, _ := t.Framework.K8sResourceManagers.PodManager().PodLogs("cni-automation", pod.Name)
+		fmt.Fprintf(GinkgoWriter, "Pod logs %s: %v", pod.Name, podlog)
+	}
+
 	fmt.Fprintln(GinkgoWriter, "successfully created traffic client")
 
 	// Get List of client Pods for validation
