@@ -64,6 +64,13 @@ func (d *defaultJobManager) CreateAndWaitTillJobCompleted(job *v1.Job) (*v1.Job,
 
 func (d *defaultJobManager) DeleteAndWaitTillJobIsDeleted(job *v1.Job) error {
 	ctx := context.Background()
+
+	if err := d.k8sClient.Get(ctx, utils.NamespacedName(job), job); err != nil {
+		if errors.IsNotFound(err) {
+			return nil
+		}
+	}
+
 	err := d.k8sClient.Delete(ctx, job)
 	if err != nil {
 		return err

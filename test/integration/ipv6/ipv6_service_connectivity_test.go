@@ -109,6 +109,13 @@ var _ = Describe("[CANARY] test service connectivity", func() {
 		By("creating jobs to verify service connectivity")
 		_, err = f.K8sResourceManagers.JobManager().
 			CreateAndWaitTillJobCompleted(testerJob)
+		podList, err := f.K8sResourceManagers.PodManager().GetPodsWithLabelSelectorMap(map[string]string{"job-name": "test-job"})
+
+		for _, pod := range podList.Items {
+			podlog, _ := f.K8sResourceManagers.PodManager().PodLogs(testerJob.Namespace, pod.Name)
+			fmt.Fprintf(GinkgoWriter, "Pod logs %s : %s", pod.Name, podlog)
+		}
+
 		Expect(err).ToNot(HaveOccurred())
 
 		// Test connection to an unreachable port should fail
