@@ -20,6 +20,7 @@ import (
 
 	"github.com/aws/amazon-vpc-cni-k8s/test/framework/resources/k8s/manifest"
 	"github.com/aws/amazon-vpc-cni-k8s/test/framework/utils"
+	"github.com/prometheus/client_golang/prometheus"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -129,17 +130,17 @@ var _ = Describe("[CANARY] test service connectivity", func() {
 	})
 
 	JustAfterEach(func() {
-		err := f.K8sResourceManagers.JobManager().DeleteAndWaitTillJobIsDeleted(testerJob)
-		Expect(err).ToNot(HaveOccurred())
+		var errs prometheus.MultiError
 
-		err = f.K8sResourceManagers.JobManager().DeleteAndWaitTillJobIsDeleted(negativeTesterJob)
-		Expect(err).ToNot(HaveOccurred())
+		errs.Append(f.K8sResourceManagers.JobManager().DeleteAndWaitTillJobIsDeleted(testerJob))
 
-		err = f.K8sResourceManagers.ServiceManager().DeleteAndWaitTillServiceDeleted(context.Background(), service)
-		Expect(err).ToNot(HaveOccurred())
+		errs.Append(f.K8sResourceManagers.JobManager().DeleteAndWaitTillJobIsDeleted(negativeTesterJob))
 
-		err = f.K8sResourceManagers.DeploymentManager().DeleteAndWaitTillDeploymentIsDeleted(deployment)
-		Expect(err).ToNot(HaveOccurred())
+		errs.Append(f.K8sResourceManagers.ServiceManager().DeleteAndWaitTillServiceDeleted(context.Background(), service))
+
+		errs.Append(f.K8sResourceManagers.DeploymentManager().DeleteAndWaitTillDeploymentIsDeleted(deployment))
+
+		Expect(errs.MaybeUnwrap()).ToNot(HaveOccurred())
 	})
 
 	Context("when a deployment behind clb service is created", func() {
