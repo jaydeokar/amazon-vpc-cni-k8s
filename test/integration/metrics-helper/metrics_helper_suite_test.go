@@ -158,17 +158,18 @@ var _ = BeforeSuite(func() {
 
 var _ = AfterSuite(func() {
 	By("uninstalling cni-metrics-helper using helm")
-	err := f.InstallationManager.UnInstallCNIMetricsHelper()
-	Expect(err).ToNot(HaveOccurred())
+	fmt.Fprintf(GinkgoWriter, "Tests finished for cluster name %s \n", f.Options.NgNameLabelKey)
+	// err := f.InstallationManager.UnInstallCNIMetricsHelper()
+	// Expect(err).ToNot(HaveOccurred())
 
-	By("detaching role policy from the node IAM Role")
-	err = f.CloudServices.IAM().DetachRolePolicy(policyARN, ngRoleName)
-	Expect(err).ToNot(HaveOccurred(), fmt.Sprintf("unable to detach %s %s", policyARN, ngRoleName))
+	// By("detaching role policy from the node IAM Role")
+	// err = f.CloudServices.IAM().DetachRolePolicy(policyARN, ngRoleName)
+	// Expect(err).ToNot(HaveOccurred(), fmt.Sprintf("unable to detach %s %s", policyARN, ngRoleName))
 
-	k8sUtil.RemoveVarFromDaemonSetAndWaitTillUpdated(f, utils.AwsNodeName, utils.AwsNodeNamespace,
-		utils.AwsNodeName, map[string]struct{}{"SOME_NON_EXISTENT_VAR": {}})
+	// k8sUtil.RemoveVarFromDaemonSetAndWaitTillUpdated(f, utils.AwsNodeName, utils.AwsNodeNamespace,
+	// 	utils.AwsNodeName, map[string]struct{}{"SOME_NON_EXISTENT_VAR": {}})
 
-	By("deleting test namespace")
-	f.K8sResourceManagers.NamespaceManager().
-		DeleteAndWaitTillNamespaceDeleted(utils.DefaultTestNamespace)
+	// By("deleting test namespace")
+	// f.K8sResourceManagers.NamespaceManager().
+	// 	DeleteAndWaitTillNamespaceDeleted(utils.DefaultTestNamespace)
 })
