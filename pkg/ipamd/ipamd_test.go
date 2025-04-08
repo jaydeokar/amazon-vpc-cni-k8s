@@ -523,6 +523,7 @@ func testIncreaseIPPool(t *testing.T, useENIConfig bool, unschedulabeNode bool, 
 		maxIPsPerENI:              14,
 		maxENI:                    4,
 		warmENITarget:             1,
+		dataStoreAccess:           testDatastore(),
 		networkClient:             m.network,
 		useCustomNetworking:       UseCustomNetworkCfg(),
 		useSubnetDiscovery:        UseSubnetDiscovery(),
@@ -530,7 +531,7 @@ func testIncreaseIPPool(t *testing.T, useENIConfig bool, unschedulabeNode bool, 
 		primaryIP:                 make(map[string]string),
 		terminating:               int32(0),
 	}
-	mockContext.dataStoreAccess = testDatastore()
+
 	if subnetDiscovery {
 		mockContext.dataStoreAccess.GetDataStore(defaultNetworkCard).AddENI(primaryENIid, primaryDevice, true, false, false)
 	}
