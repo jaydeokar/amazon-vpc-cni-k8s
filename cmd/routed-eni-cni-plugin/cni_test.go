@@ -324,6 +324,11 @@ func TestCmdAddWithNetworkPolicyModeUnset(t *testing.T) {
 func TestCmdAddForMultiNICAttachment(t *testing.T) {
 	ctrl, mocksTypes, mocksGRPC, mocksRPC, mocksNetwork := setup(t)
 	defer ctrl.Finish()
+	netConf.RuntimeConfig = RuntimeConfig{
+		PodAnnotations: map[string]string{
+			multiNICPodAnnotation: multiNICAttachment,
+		},
+	}
 
 	stdinData, _ := json.Marshal(netConf)
 
@@ -1211,6 +1216,11 @@ func Test_teardownPodNetworkWithPrevResult(t *testing.T) {
 									Interface: aws.Int(3),
 								},
 							},
+						},
+					},
+					RuntimeConfig: RuntimeConfig{
+						PodAnnotations: map[string]string{
+							multiNICPodAnnotation: multiNICAttachment,
 						},
 					},
 				},
