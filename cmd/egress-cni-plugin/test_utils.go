@@ -21,6 +21,7 @@ import (
 	_ns "github.com/containernetworking/plugins/pkg/ns"
 	"github.com/golang/mock/gomock"
 	"github.com/vishvananda/netlink"
+	"golang.org/x/sys/unix"
 
 	mock_ipam "github.com/aws/amazon-vpc-cni-k8s/pkg/hostipamwrapper/mocks"
 	mock_iptables "github.com/aws/amazon-vpc-cni-k8s/pkg/iptableswrapper/mocks"
@@ -143,7 +144,7 @@ func SetupDelExpectV4(ec egressContext, actualIptablesDel *[]string) error {
 			},
 		}, nil)
 
-	ec.Link.(*mock_netlink.MockNetLink).EXPECT().AddrList(gomock.Any(), netlink.FAMILY_V4).Return(
+	ec.Link.(*mock_netlink.MockNetLink).EXPECT().AddrList(gomock.Any(), unix.AF_INET).Return(
 		[]netlink.Addr{
 			{
 				IPNet: &net.IPNet{
@@ -232,7 +233,7 @@ func SetupAddExpectV6(c egressContext, chain string, actualIptablesRules, actual
 				Index: 2,
 			},
 		}, nil).AnyTimes()
-	c.Link.(*mock_netlink.MockNetLink).EXPECT().AddrList(gomock.Any(), netlink.FAMILY_V6).DoAndReturn(
+	c.Link.(*mock_netlink.MockNetLink).EXPECT().AddrList(gomock.Any(), unix.AF_INET6).DoAndReturn(
 		func(arg1 interface{}, _ interface{}) ([]netlink.Addr, error) {
 			link := arg1.(netlink.Link)
 			if link.Attrs().Name == "vethxxxx" {
@@ -299,7 +300,7 @@ func SetupDelExpectV6(c egressContext, chain string, actualIptablesDel *[]string
 			},
 		}, nil)
 
-	c.Link.(*mock_netlink.MockNetLink).EXPECT().AddrList(gomock.Any(), netlink.FAMILY_V6).Return(
+	c.Link.(*mock_netlink.MockNetLink).EXPECT().AddrList(gomock.Any(), unix.AF_INET6).Return(
 		[]netlink.Addr{
 			{
 				IPNet: &net.IPNet{
