@@ -101,15 +101,6 @@ message EnforceNpReply {
   bool Success = 1;
 }
 
-message DeleteNpRequest {
-  string K8S_POD_NAME = 1;
-  string K8S_POD_NAMESPACE = 2;
-}
-
-message DeleteNpReply {
-  bool Success = 1;
-}
-
 // The service definition.
 service ConfigServerBackend {
     rpc GetNetworkPolicyConfigs (google.protobuf.Empty) returns (NetworkPolicyAgentConfigReply) {}
