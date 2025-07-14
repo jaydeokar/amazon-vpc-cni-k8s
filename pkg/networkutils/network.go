@@ -1033,8 +1033,8 @@ func setupENINetwork(eniIP string, eniMac string, deviceNumber int, networkCard 
 	}
 
 	// CNI will never have route table 1 as we don't setup device number 0 on network card 0
-	// So, table number 1 for CNI is same as main table
-	tableNumber := (networkCard * maxENIPerNIC) + deviceNumber + 1
+	// So, tableNumber = 1 is equivalent to main route table (id=254)
+	tableNumber := CalculateRouteTableId(deviceNumber, networkCard, maxENIPerNIC)
 	log.Infof("Setting up network for an ENI with IP address %s, MAC address %s, CIDR %s, route table %d and Network Card %d",
 		eniIP, eniMac, eniSubnetCIDR, tableNumber, networkCard)
 
