@@ -81,7 +81,7 @@ jq -c '.[]' $REGIONS_FILE | while read i; do
       --set nodeAgent.image.tag=$NODE_AGENT_VERSION \
       --set env.VPC_CNI_VERSION=$VPC_CNI_VERSION \
       --namespace $NAMESPACE \
-      $SCRIPTPATH/../charts/aws-vpc-cni > $NEW_CNI_RESOURCES_YAML
+      $SCRIPTPATH/../charts/aws-vpc-cni | yq > $NEW_CNI_RESOURCES_YAML
     # Remove 'managed-by: Helm' annotation
     sed -i '/helm.sh\|app.kubernetes.io\/managed-by: Helm/d' $NEW_CNI_RESOURCES_YAML
 
@@ -91,7 +91,7 @@ jq -c '.[]' $REGIONS_FILE | while read i; do
       --set image.domain=$ecrDomain \
       --set image.tag=$VPC_CNI_VERSION \
       --namespace $NAMESPACE \
-      $SCRIPTPATH/../charts/cni-metrics-helper > $NEW_METRICS_RESOURCES_YAML
+      $SCRIPTPATH/../charts/cni-metrics-helper | yq  > $NEW_METRICS_RESOURCES_YAML
     # Remove 'managed-by: Helm' annotation
     sed -i '/helm.sh\|app.kubernetes.io\/managed-by: Helm/d' $NEW_METRICS_RESOURCES_YAML
 done
