@@ -46,7 +46,7 @@ jobs:
 
       - name: Create Pull Request
         if: steps.changes.outputs.changed == 'true'
-        uses: peter-evans/create-pull-request@5e914681df9dc83aa4e4905692ca88beb2f9e91f # refs/tags/v7.0.5
+        uses: devops-infra/create-pull-request@a650fadebe990f25fa1e09369bf95d4a9b45ea2b # refs/tags/v7.0.5
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           commit-message: "chore: update VPC IP resource limits"
@@ -63,5 +63,6 @@ jobs:
             
             ## Testing
             Please verify that the generated limits are correct.
-          branch: automated/update-vpc-limits
+          source_branch: automated/update-vpc-limits
+          target_branch: "master"
           delete-branch: true
