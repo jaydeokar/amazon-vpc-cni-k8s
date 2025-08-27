@@ -12,7 +12,7 @@ permissions:
 
 jobs:
   generate-limits:
-    if: github.repository == 'aws/amazon-vpc-cni-k8s'
+    # if: github.repository == 'aws/amazon-vpc-cni-k8s'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
