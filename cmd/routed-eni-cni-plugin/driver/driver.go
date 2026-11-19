@@ -46,8 +46,7 @@ const (
 
 	//Time duration CNI waits for an IPv6 address assigned to an interface
 	//to move to stable state before error'ing out.
-	v6DADTimeout                = 10 * time.Second
-	MAX_MAC_GENERATION_ATTEMPTS = 10
+	v6DADTimeout = 10 * time.Second
 
 	// maxVlanID is the largest valid 802.1Q VLAN id. Branch ENI VLAN ids arrive
 	// via vpc.amazonaws.com/pod-eni annotation
@@ -472,13 +471,14 @@ func (n *linuxNetwork) setupVeth(hostVethName string, contVethName string, netns
 	if err := n.claimHostVethName(hostVethName, podIdentity, netnsPath, log); err != nil {
 		return nil, err
 	}
-	macAddrStr, err := NewMACGenerator().generateUniqueRandomMAC()
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to generate Unique MAC addr for host side veth")
-	}
+	// The host end gets an explicit MAC at creation so the kernel marks it
+	// NET_ADDR_SET and udev's MACAddressPolicy=persistent leaves it alone (#3354).
+	// Node-wide uniqueness is not required: every veth pair is its own
+	// point-to-point segment and host ends are never bridged
+	macAddrStr := generateRandomMAC()
 	macAddr, err := net.ParseMAC(macAddrStr)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to parse unique generated mac addr %s", macAddrStr)
+		return nil, errors.Wrapf(err, "failed to parse generated mac addr %s", macAddrStr)
 	}
 	createVethContext := newCreateVethPairContext(contVethName, hostVethName, ipAddr, mtu, index, macAddr, log)
 	if err := n.ns.WithNetNSPath(netnsPath, createVethContext.run); err != nil {
@@ -842,15 +842,7 @@ func buildVlanLink(vlanName string, vlanID int, parentIfIndex int, eniMAC string
 	return &netlink.Vlan{LinkAttrs: la, VlanId: vlanID}
 }
 
-type MACGenerator struct {
-	netlink   netlinkwrapper.NetLink
-	randMACfn func() string
-}
-
-func NewMACGenerator() MACGenerator {
-	return MACGenerator{netlink: netlinkwrapper.NewNetLink(), randMACfn: generateRandomMAC}
-}
-
+// generateRandomMAC returns a random unicast, locally administered MAC address.
 func generateRandomMAC() string {
 	mac := make([]byte, 6)
 	rand.Read(mac)
@@ -859,26 +851,4 @@ func generateRandomMAC() string {
 
 	return fmt.Sprintf("%02x:%02x:%02x:%02x:%02x:%02x",
 		mac[0], mac[1], mac[2], mac[3], mac[4], mac[5])
-}
-
-// generateUniqueRandomMAC will compare randomly generated Mac to mac addresses of veth already present in host.
-func (m MACGenerator) generateUniqueRandomMAC() (string, error) {
-	ll, err := m.netlink.LinkList()
-	if err != nil {
-		return "", err
-	}
-	macMap := make(map[string]struct{})
-	for _, link := range ll {
-		if link.Attrs() != nil {
-			macMap[link.Attrs().HardwareAddr.String()] = struct{}{}
-		}
-	}
-
-	for i := 0; i < MAX_MAC_GENERATION_ATTEMPTS; i++ {
-		macAttempt := m.randMACfn()
-		if _, ok := macMap[macAttempt]; !ok {
-			return macAttempt, nil
-		}
-	}
-	return "", errors.New(fmt.Sprintf("failed to generate unique mac after %d attempts.", MAX_MAC_GENERATION_ATTEMPTS))
 }

@@ -25,6 +25,7 @@ import (
 
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
+	"github.com/vishvananda/netlink"
 )
 
 const (
@@ -54,17 +55,26 @@ func getNodePrimaryIF() (string, error) {
 	if err != nil {
 		return primaryIF, errors.Wrap(err, "Failed to list links")
 	}
-	for _, link := range links {
-		if link.Attrs().HardwareAddr.String() == primaryMAC {
-			primaryIF = link.Attrs().Name
-			break
-		}
-	}
-
+	primaryIF = linkNameByMAC(links, primaryMAC)
 	if primaryIF == "" {
-		return primaryIF, errors.Wrap(err, "Failed to retrieve primary IF")
+		return primaryIF, errors.Errorf("Failed to retrieve primary IF: no link with MAC %s", primaryMAC)
 	}
 	return primaryIF, nil
+}
+
+// linkNameByMAC returns the name of the first non-veth link with the given MAC,
+// or "" if there is none. Host-side pod veths carry random locally administered
+// addresses chosen by the CNI plugin and must never be mistaken for an ENI.
+func linkNameByMAC(links []netlink.Link, mac string) string {
+	for _, link := range links {
+		if _, isVeth := link.(*netlink.Veth); isVeth {
+			continue
+		}
+		if link.Attrs().HardwareAddr.String() == mac {
+			return link.Attrs().Name
+		}
+	}
+	return ""
 }
 
 func configureSystemParams(procSys procsyswrapper.ProcSys, primaryIF string) error {
